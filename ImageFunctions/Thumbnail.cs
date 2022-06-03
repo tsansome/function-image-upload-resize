@@ -80,12 +80,15 @@ namespace ImageFunctions
             {
                 if (input != null)
                 {
+                    log.LogInformation("1. Starting function with input file.");
+
                     var createdEvent = ((JObject)eventGridEvent.Data).ToObject<StorageBlobCreatedEventData>();
                     var extension = Path.GetExtension(createdEvent.Url);
                     var encoder = GetEncoder(extension);
 
                     if (encoder != null)
                     {
+                        log.LogInformation("2. Got encoder.");
                         var thumbnailWidth = Convert.ToInt32(Environment.GetEnvironmentVariable("THUMBNAIL_WIDTH"));
                         var thumbContainerName = Environment.GetEnvironmentVariable("THUMBNAIL_CONTAINER_NAME");
                         var blobServiceClient = new BlobServiceClient(BLOB_STORAGE_CONNECTION_STRING);
@@ -95,6 +98,7 @@ namespace ImageFunctions
                         using (var output = new MemoryStream())
                         using (Image<Rgba32> image = Image.Load(input))
                         {
+                            log.LogInformation("3. Performing encoding.");
                             var divisor = image.Width / thumbnailWidth;
                             var height = Convert.ToInt32(Math.Round((decimal)(image.Height / divisor)));
 
@@ -102,12 +106,15 @@ namespace ImageFunctions
                             image.Save(output, encoder);
                             output.Position = 0;
                             await blobContainerClient.UploadBlobAsync(blobName, output);
+                            log.LogInformation($"4. finished encoding for {blobName}");
                         }
                     }
                     else
                     {
                         log.LogInformation($"No encoder support for: {createdEvent.Url}");
                     }
+
+                    log.LogInformation($"5. Finishing function.");
                 }
             }
             catch (Exception ex)
