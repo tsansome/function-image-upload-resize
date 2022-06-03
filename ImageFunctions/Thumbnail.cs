@@ -78,6 +78,7 @@ namespace ImageFunctions
         {
             try
             {
+                log.LogInformation($"0. Starting the function with {input}");
                 if (input != null)
                 {
                     log.LogInformation("1. Starting function with input file.");
